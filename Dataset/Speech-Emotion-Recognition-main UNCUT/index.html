@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Emotion & Baby Cry Detector</title>
+    <style>
+        /* Base Styles */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        /* Animated Stickers */
+        .sticker {
+            position: fixed;
+            z-index: 0;
+            opacity: 0.7;
+            animation: float 15s infinite ease-in-out;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+            will-change: transform;
+            pointer-events: none;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(5deg); }
+        }
+
+        /* Individual Sticker Positions */
+        #music-note { width: 80px; top: 10%; left: 5%; animation-delay: 0s; }
+        #microphone { width: 100px; top: 75%; left: 80%; animation-delay: 2s; }
+        #sound-wave { width: 90px; top: 25%; left: 82%; animation-delay: 4s; }
+        #happy-face { width: 80px; top: 65%; left: 10%; animation-delay: 1s; }
+        #sad-face { width: 80px; top: 15%; left: 85%; animation-delay: 3s; }
+        #angry-face { width: 80px; top: 80%; left: 15%; animation-delay: 5s; }
+        #baby-bottle { width: 100px; top: 30%; left: 8%; animation-delay: 6s; }
+        #baby-face { width: 90px; top: 70%; left: 83%; animation-delay: 7s; }
+        #crying-baby { width: 80px; top: 85%; left: 80%; animation-delay: 8s; }
+
+        /* Main Container */
+        #container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+            margin: 30px auto;
+            backdrop-filter: blur(5px);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* UI Elements */
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 25px;
+        }
+        #audioFile {
+            margin: 20px 0;
+            width: 100%;
+            padding: 10px;
+            border: 2px dashed #3498db;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.5);
+        }
+        #predictButton {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        #predictButton:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        #predictButton:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        /* Result Styles */
+        .result-box {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: left;
+        }
+        .adult-result {
+            border-left: 4px solid #2ecc71;
+            background-color: rgba(46, 204, 113, 0.1);
+        }
+        .baby-result {
+            border-left: 4px solid #e74c3c;
+            background-color: rgba(231, 76, 60, 0.1);
+        }
+        .error-box {
+            border-left: 4px solid #f39c12;
+            background-color: rgba(243, 156, 18, 0.1);
+        }
+        .spinner {
+            border: 4px solid rgba(0,0,0,0.1);
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Stickers -->
+    <img src="https://cdn-icons-png.flaticon.com/512/3565/3565418.png" class="sticker" id="music-note" alt="Music Note">
+    <img src="https://cdn-icons-png.flaticon.com/512/2933/2933245.png" class="sticker" id="microphone" alt="Microphone">
+    <img src="https://cdn-icons-png.flaticon.com/512/7288/7288824.png" class="sticker" id="sound-wave" alt="Sound Wave">
+    <img src="https://cdn-icons-png.flaticon.com/512/742/742751.png" class="sticker" id="happy-face" alt="Happy Face">
+    <img src="https://cdn-icons-png.flaticon.com/512/742/742764.png" class="sticker" id="sad-face" alt="Sad Face">
+    <img src="https://cdn-icons-png.flaticon.com/512/742/742807.png" class="sticker" id="angry-face" alt="Angry Face">
+    <img src="https://cdn-icons-png.flaticon.com/512/1864/1864593.png" class="sticker" id="baby-bottle" alt="Baby Bottle">
+    <img src="https://cdn-icons-png.flaticon.com/512/1864/1864589.png" class="sticker" id="baby-face" alt="Baby Face">
+    <img src="https://cdn-icons-png.flaticon.com/512/3048/3048127.png" class="sticker" id="crying-baby" alt="Crying Baby">
+
+    <!-- Main Content Container -->
+    <div id="container">
+        <h1>Voice Emotion & Baby Cry Detector</h1>
+        <input type="file" id="audioFile" accept=".wav" />
+        <button id="predictButton">Analyze Audio</button>
+        <div id="result"></div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        const predictButton = document.getElementById('predictButton');
+        const fileInput = document.getElementById('audioFile');
+        const resultDiv = document.getElementById('result');
+
+        predictButton.addEventListener('click', async () => {
+            if (!fileInput.files.length) {
+                resultDiv.innerHTML = `
+                    <div class="result-box error-box">
+                        <p>⚠️ Please select a .wav file first</p>
+                    </div>
+                `;
+                return;
+            }
+
+            predictButton.disabled = true;
+            predictButton.textContent = 'Processing...';
+            
+            resultDiv.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: center;">
+                    <div class="spinner"></div>
+                    <span>Analyzing audio sample...</span>
+                </div>
+            `;
+
+            try {
+                const formData = new FormData();
+                formData.append('audio', fileInput.files[0]);
+
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+
+                if (data.error) {
+                    resultDiv.innerHTML = `
+                        <div class="result-box error-box">
+                            <p>⚠️ Error: ${data.error}</p>
+                        </div>
+                    `;
+                } else if (data.type === 'adult') {
+                    resultDiv.innerHTML = `
+                        <div class="result-box adult-result">
+                            <h3>🗣️ Adult Voice Detected</h3>
+                            <p><strong>Emotion:</strong> ${data.emotion}</p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="result-box baby-result">
+                            <h3>👶 Baby Cry Detected</h3>
+                            <p><strong>Reason:</strong> ${data.emotion}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result-box error-box">
+                        <p>⚠️ Error: ${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                predictButton.disabled = false;
+                predictButton.textContent = 'Analyze Audio';
+            }
+        });
+    </script>
+</body>
+</html>
